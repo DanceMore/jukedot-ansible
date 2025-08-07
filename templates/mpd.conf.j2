@@ -16,7 +16,7 @@ filesystem_charset     "UTF-8"
 id3v1_encoding        "UTF-8"
 
 # Network settings
-user                  "{{ mpd_user }}"
+user                  "{{ mpd_user | default('mpd') }}"
 bind_to_address       "0.0.0.0"
 port                  "6600"
 
