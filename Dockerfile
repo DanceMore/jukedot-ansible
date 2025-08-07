@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-venv \
     python3-pip \
+    python3-apt \
     systemctl \
     sudo \
     && rm -rf /var/lib/apt/lists/*
@@ -17,7 +18,7 @@ RUN python3 -m venv venv && \
     pip install ansible
 
 RUN echo "[audio_receivers]" > inventory && \
-    echo "localhost ansible_connection=local" >> inventory
+    echo "localhost ansible_connection=local ansible_become=yes" >> inventory
 
 CMD . venv/bin/activate && \
     ansible-galaxy role install -r requirements.yml && \
