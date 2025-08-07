@@ -1,0 +1,67 @@
+# templates/mpd.conf.j2
+# MPD Configuration for Audio Receiver Node
+# Managed by Ansible
+
+# Directory settings
+music_directory        "/var/lib/mpd/music"
+playlist_directory     "/var/lib/mpd/playlists"
+db_file               "/var/lib/mpd/tag_cache"
+log_file              "/var/log/mpd/mpd.log"
+pid_file              "/run/mpd/pid"
+state_file            "/var/lib/mpd/state"
+sticker_file          "/var/lib/mpd/sticker.sql"
+
+# Character encoding
+filesystem_charset     "UTF-8"
+id3v1_encoding        "UTF-8"
+
+# Network settings
+user                  "{{ mpd_user }}"
+bind_to_address       "0.0.0.0"
+port                  "6600"
+
+# Enable HTTP streams
+input {
+    plugin "curl"
+}
+
+# PipeWire audio output
+audio_output {
+    type              "pipewire"
+    name              "PipeWire Output"
+    # PipeWire will auto-detect the Allen & Heath device
+}
+
+# Fallback ALSA output for Allen & Heath ZEDi8
+audio_output {
+    type              "alsa"
+    name              "Allen&Heath ZEDi8"
+    device            "plughw:ZEDi8,0"
+    mixer_type        "software"
+    enabled           "no"  # Enable manually when ZEDi8 is connected
+}
+
+# FIFO output for visualizers
+audio_output {
+    type              "fifo"
+    name              "FIFO"
+    path              "/tmp/mpd.fifo"
+    format            "44100:16:2"
+}
+
+# Network audio output (if needed for streaming to other devices)
+#audio_output {
+#    type             "httpd"
+#    name             "HTTP Stream"
+#    encoder          "vorbis"
+#    port             "8000"
+#    bitrate          "128"
+#    format           "44100:16:2"
+#}
+
+# Database settings
+auto_update           "yes"
+auto_update_depth     "3"
+
+# Network settings for client connections
+tcp_keep_alive        "yes"

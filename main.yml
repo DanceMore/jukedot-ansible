@@ -1,0 +1,3 @@
+---
+# Main orchestration playbook
+- import_playbook: playbooks/mpd.yml

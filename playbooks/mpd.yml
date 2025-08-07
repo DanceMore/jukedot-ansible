@@ -1,0 +1,83 @@
+---
+- name: Install MPD audio receiver
+  hosts: audio_receivers
+  become: yes
+  
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - mpd
+          - mpc
+          - ncmpcpp
+          - pipewire
+          - pipewire-pulse
+          - wireplumber
+        state: present
+        update_cache: yes
+
+    - name: Copy MPD config
+      copy:
+        dest: /etc/mpd.conf
+        content: |
+          music_directory        "/var/lib/mpd/music"
+          playlist_directory     "/var/lib/mpd/playlists"
+          db_file               "/var/lib/mpd/tag_cache"
+          log_file              "/var/log/mpd/mpd.log"
+          pid_file              "/run/mpd/pid"
+          state_file            "/var/lib/mpd/state"
+          sticker_file          "/var/lib/mpd/sticker.sql"
+          filesystem_charset     "UTF-8"
+          id3v1_encoding        "UTF-8"
+          user                  "mpd"
+          bind_to_address       "0.0.0.0"
+          port                  "6600"
+          
+          input {
+              plugin "curl"
+          }
+          
+          audio_output {
+              type              "pipewire"
+              name              "PipeWire Output"
+          }
+          
+          audio_output {
+              type              "fifo"
+              name              "FIFO"
+              path              "/tmp/mpd.fifo"
+              format            "44100:16:2"
+          }
+      notify: restart mpd
+
+    - name: Copy ZEDi8 udev rule
+      copy:
+        dest: /etc/udev/rules.d/99-zedi8-mpd.rules
+        content: |
+          SUBSYSTEM=="sound", ATTR{idVendor}=="22f0", ATTR{idProduct}=="0014", ACTION=="add", SYMLINK+="zedi8", TAG+="systemd", ENV{SYSTEMD_WANTS}="mpd.service"
+          SUBSYSTEM=="sound", ATTRS{idVendor}=="22f0", ATTRS{idProduct}=="0014", ACTION=="change", RUN+="/usr/local/sbin/zedi8-restart-mpd.sh"
+
+    - name: Copy ZEDi8 restart script
+      copy:
+        dest: /usr/local/sbin/zedi8-restart-mpd.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          # Script to restart MPD when ZEDi8 is reconnected
+          # Define the device path
+          DEVICE_PATH="/dev/snd/pcmC1D0c"
+          logger "[+] ZEDi8 reconnection triggered for device ${DEVICE_PATH}, sleeping..."
+          sleep 10
+          logger "[+] ZEDi8 reconnection 10sec sleep completed."
+
+    - name: Enable MPD service
+      systemd:
+        name: mpd
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: restart mpd
+      systemd:
+        name: mpd
+        state: restarted
