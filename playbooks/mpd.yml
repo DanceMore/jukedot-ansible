@@ -17,37 +17,9 @@
         update_cache: yes
 
     - name: Copy MPD config
-      copy:
+      template:
+        src: mpd.conf.j2
         dest: /etc/mpd.conf
-        content: |
-          music_directory        "/var/lib/mpd/music"
-          playlist_directory     "/var/lib/mpd/playlists"
-          db_file               "/var/lib/mpd/tag_cache"
-          log_file              "/var/log/mpd/mpd.log"
-          pid_file              "/run/mpd/pid"
-          state_file            "/var/lib/mpd/state"
-          sticker_file          "/var/lib/mpd/sticker.sql"
-          filesystem_charset     "UTF-8"
-          id3v1_encoding        "UTF-8"
-          user                  "mpd"
-          bind_to_address       "0.0.0.0"
-          port                  "6600"
-          
-          input {
-              plugin "curl"
-          }
-          
-          audio_output {
-              type              "pipewire"
-              name              "PipeWire Output"
-          }
-          
-          audio_output {
-              type              "fifo"
-              name              "FIFO"
-              path              "/tmp/mpd.fifo"
-              format            "44100:16:2"
-          }
       notify: restart mpd
 
     - name: Copy ZEDi8 udev rule
@@ -75,9 +47,11 @@
         name: mpd
         enabled: yes
         state: started
+      when: not ansible_check_mode
 
   handlers:
     - name: restart mpd
       systemd:
         name: mpd
         state: restarted
+      when: not ansible_check_mode
