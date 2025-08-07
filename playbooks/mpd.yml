@@ -18,7 +18,7 @@
 
     - name: Copy MPD config
       template:
-        src: mpd.conf.j2
+        src: ../templates/mpd.conf.j2
         dest: /etc/mpd.conf
       notify: restart mpd
 
