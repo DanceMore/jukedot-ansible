@@ -1,3 +1,5 @@
 ---
 # Main orchestration playbook
+- import_playbook: playbooks/easyeffects.yml
+- import_playbook: playbooks/baseline.yml
 - import_playbook: playbooks/mpd.yml
