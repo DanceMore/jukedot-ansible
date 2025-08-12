@@ -1,6 +1,6 @@
 ---
 - name: Install MPD audio receiver
-  hosts: audio_receivers
+  hosts: all
   become: yes
   
   tasks:
