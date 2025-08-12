@@ -1,0 +1,78 @@
+---
+- name: Setup EasyEffects Headless Operation
+  hosts: all
+  become: yes
+  vars:
+    easyeffects_user: "mpd"
+    xvfb_display: ":43"
+    xvfb_screen: "1024x768x16"
+
+  tasks:
+    - name: Install required packages
+      package:
+        name:
+          - xvfb
+          - easyeffects
+        state: present
+
+    - name: Create EasyEffects control script
+      template:
+        src: ../templates/easyeffects/easyeffects-xvfb.sh.j2
+        dest: /usr/local/bin/easyeffects-xvfb
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create systemd service file
+      template:
+        src: ../templates/easyeffects/easyeffects-xvfb.service.j2
+        dest: /etc/systemd/system/easyeffects-xvfb.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: reload systemd
+
+    - name: Create systemd user environment directory
+      file:
+        path: /etc/systemd/system/easyeffects-xvfb.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create systemd service override for user environment
+      template:
+        src: ../templates/easyeffects/override.conf.j2
+        dest: /etc/systemd/system/easyeffects-xvfb.service.d/override.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: reload systemd
+
+    - name: Enable and start easyeffects-xvfb service
+      systemd:
+        name: easyeffects-xvfb
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Create bass-trim.json
+      template:
+        src: ../templates/easyeffects/bass-trim.json
+        dest: /home/{{ easyeffects_user }}/.config/easyeffects/output
+        owner: "{{ easyeffects_user }}"
+        group: "{{ easyeffects_user }}"
+        mode: '0644'
+
+    - name: Create bass-control script
+      template:
+        src: ../templates/easyeffects/bass-control.sh.j2
+        dest: /usr/local/bin/bass-control
+        owner: root
+        group: root
+        mode: '0755'
+
+  handlers:
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes

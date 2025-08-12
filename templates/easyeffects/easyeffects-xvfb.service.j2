@@ -1,0 +1,28 @@
+[Unit]
+Description=EasyEffects inside Xvfb (Headless)
+After=sound.target
+Wants=sound.target
+
+[Service]
+Type=simple
+User={{ easyeffects_user }}
+ExecStart=/usr/local/bin/easyeffects-xvfb start
+ExecStop=/usr/local/bin/easyeffects-xvfb stop
+ExecReload=/usr/local/bin/easyeffects-xvfb stop && /usr/local/bin/easyeffects-xvfb start
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=15
+
+# Environment variables
+Environment="DISPLAY={{ xvfb_display }}"
+Environment="XDG_RUNTIME_DIR=/run/user/$(id -u {{ easyeffects_user }})"
+
+# Security settings
+NoNewPrivileges=false
+ProtectSystem=strict
+ProtectHome=false
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

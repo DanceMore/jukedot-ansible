@@ -1,0 +1,60 @@
+---
+- name: Setup Debian 12 system
+  hosts: all
+  # we run this as local apply, as root, because sudo isn't even installed yet.
+  #become: true
+
+  tasks:
+    - name: Ensure APT does not install recommends or suggests
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/99no-recommends
+        content: |
+          APT::Install-Recommends "false";
+          APT::Install-Suggests "false";
+        owner: root
+        group: root
+        mode: "0644"
+
+    # Update apt cache
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600 # Consider cache valid for 1 hour
+
+    # install sudo ASAP for future ansible
+    - name: Install sudo
+      ansible.builtin.apt:
+        name:
+          - sudo
+        state: present
+
+    # install more packages
+    - name: Install developer/admin packages
+      ansible.builtin.apt:
+        name:
+          - aptitude
+          - curl
+          - git
+          - screen
+          - rsync
+          - ruby
+          - vim-nox
+          - wget
+          - zsh
+          - bash
+          - openssh-server # This is the package for sshd on Debian
+        state: present
+
+#  - name: Configure ssh clients
+#    include_role:
+#      name: dev-sec.ssh-hardening
+#    vars:
+
+    - name: Set up multiple authorized keys
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ item }}"
+      with_file:
+        - ../files/public_keys/user.key
+        - ../files/public_keys/yubi.key

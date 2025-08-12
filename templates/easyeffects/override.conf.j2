@@ -1,0 +1,8 @@
+[Service]
+# Additional environment variables for {{ easyeffects_user }}
+Environment="HOME=/home/{{ easyeffects_user }}"
+Environment="USER={{ easyeffects_user }}"
+Environment="LOGNAME={{ easyeffects_user }}"
+
+# Ensure audio group access
+SupplementaryGroups=audio
