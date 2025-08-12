@@ -3,6 +3,27 @@
   hosts: all
   become: yes
   
+  vars:
+    mpd_playlists:
+      - name: fm-c895.m3u
+        content: "http://knhc-ice.streamguys1.com:80/live"
+      - name: fm-kexp.m3u
+        content: "https://kexp.streamguys1.com/kexp160.aac"
+      - name: fm-vanbc-coop.m3u
+        content: "https://listen-coopradio.sharp-stream.com/coopradio.mp3?ver=247482"
+      - name: jukebox.m3u
+        content: "http://nas.dance.more:10000/jukebox.mp3"
+      - name: somafm-beat-blender.m3u
+        content: "https://ice5.somafm.com/beatblender-128-mp3"
+      - name: somafm-groove-salad.m3u
+        content: "https://ice5.somafm.com/groovesalad-128-mp3"
+      - name: somafm-secret-agent.m3u
+        content: "https://ice5.somafm.com/secretagent-128-mp3"
+      - name: somafm-suburbs-of-goa.m3u
+        content: "https://ice5.somafm.com/suburbsofgoa-128-mp3"
+      - name: somafm-the-in-sound.m3u
+        content: "https://ice5.somafm.com/insound-128-mp3"
+
   tasks:
     - name: Install packages
       apt:
@@ -21,6 +42,24 @@
         src: ../templates/mpd.conf.j2
         dest: /etc/mpd.conf
       notify: restart mpd
+
+    - name: Ensure MPD playlists directory exists
+      file:
+        path: /var/lib/mpd/playlists
+        state: directory
+        owner: mpd
+        group: audio
+        mode: '0755'
+
+    - name: Create MPD playlist files
+      copy:
+        dest: "/var/lib/mpd/playlists/{{ item.name }}"
+        content: "{{ item.content }}\n"
+        owner: mpd
+        group: audio
+        mode: '0644'
+      loop: "{{ mpd_playlists }}"
+      notify: update mpd database
 
     - name: Copy ZEDi8 udev rule
       copy:
@@ -55,3 +94,8 @@
         name: mpd
         state: restarted
       when: not ansible_check_mode
+
+    - name: update mpd database
+      command: mpc update
+      when: not ansible_check_mode
+      ignore_errors: yes
