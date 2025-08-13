@@ -2,13 +2,18 @@
     "output": {
         "blocklist": [],
         "filter#0": {
+            "balance": 0.0,
             "bypass": false,
+            "equal-mode": "IIR",
             "frequency": 120.0,
-            "inertia": 20.0,
+            "gain": 0.0,
             "input-gain": 0.0,
-            "mode": "12dB/oct Highpass",
+            "mode": "RLC (BT)",
             "output-gain": 0.0,
-            "resonance": -3.0
+            "quality": 0.0,
+            "slope": "x1",
+            "type": "High-pass",
+            "width": 4.0
         },
         "plugins_order": [
             "filter#0"

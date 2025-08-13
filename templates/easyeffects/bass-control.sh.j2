@@ -12,13 +12,13 @@ case "$1" in
     ;;
   off|disable|normal)
     echo "Disabling bass cut (normal audio)..."
-    easyeffects --load-preset normal
+    easyeffects --reset
     echo "off" > "$STATE_FILE"
     ;;
   toggle)
     if [[ -f "$STATE_FILE" && "$(cat "$STATE_FILE")" == "on" ]]; then
       echo "Bass cut is ON, turning OFF..."
-      easyeffects --load-preset normal
+      easyeffects --reset
       echo "off" > "$STATE_FILE"
     else
       echo "Bass cut is OFF, turning ON..."
