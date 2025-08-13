@@ -84,18 +84,6 @@
     - name: Enable MPD service
       systemd:
         name: mpd
-        enabled: yes
-        state: started
+        enabled: no
+        state: stopped
       when: not ansible_check_mode
-
-  handlers:
-    - name: restart mpd
-      systemd:
-        name: mpd
-        state: restarted
-      when: not ansible_check_mode
-
-    - name: update mpd database
-      command: mpc update
-      when: not ansible_check_mode
-      ignore_errors: yes

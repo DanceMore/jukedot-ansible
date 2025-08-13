@@ -22,6 +22,9 @@ case "$1" in
         
         # Start EasyEffects (systemd unit should run as $USER)
         easyeffects --gapplication-service
+
+        # alsop run mpd here for xsession winning and not systemd
+        mpd &
         ;;
     
     stop)
