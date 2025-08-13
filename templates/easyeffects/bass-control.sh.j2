@@ -1,44 +1,68 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
-DISPLAY="{{ xvfb_display }}"
-export XDG_RUNTIME_DIR="/run/user/$(id -u {{ easyeffects_user }})"
-STATE_FILE="$XDG_RUNTIME_DIR/bass-trim.state"
+import os
+import sys
+import json
+from pathlib import Path
 
-case "$1" in
-  on|enable|cut)
-    echo "Enabling bass cut..."
-    easyeffects --load-preset bass-trim
-    echo "on" > "$STATE_FILE"
-    ;;
-  off|disable|normal)
-    echo "Disabling bass cut (normal audio)..."
-    easyeffects --reset
-    echo "off" > "$STATE_FILE"
-    ;;
-  toggle)
-    if [[ -f "$STATE_FILE" && "$(cat "$STATE_FILE")" == "on" ]]; then
-      echo "Bass cut is ON, turning OFF..."
-      easyeffects --reset
-      echo "off" > "$STATE_FILE"
-    else
-      echo "Bass cut is OFF, turning ON..."
-      easyeffects --load-preset bass-trim
-      echo "on" > "$STATE_FILE"
-    fi
-    ;;
-  status)
-    if [[ -f "$STATE_FILE" && "$(cat "$STATE_FILE")" == "on" ]]; then
-      echo "Bass cut: ENABLED"
-    else
-      echo "Bass cut: DISABLED"
-    fi
-    ;;
-  *)
-    echo "Usage: $0 {on|off|toggle|status}"
-    echo "  on/enable/cut       - Enable bass cut"
-    echo "  off/disable/normal  - Disable bass cut" 
-    echo "  toggle               - Switch between on/off"
-    echo "  status               - Show current state"
-    exit 1
-    ;;
-esac
+# Configuration
+DISPLAY = ":43"
+os.environ["DISPLAY"] = DISPLAY
+os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
+
+STATE_FILE = Path(os.environ["XDG_RUNTIME_DIR"]) / "bass-trim.state"
+
+def get_state():
+    """Get current bass cut state"""
+    try:
+        if STATE_FILE.exists():
+            state = STATE_FILE.read_text().strip()
+            return state == "on"
+        return False
+    except:
+        return False
+
+def set_state(enabled):
+    """Set bass cut state and update state file"""
+    try:
+        if enabled:
+            os.system("easyeffects --load-preset bass-trim")
+            STATE_FILE.write_text("on")
+            return True
+        else:
+            os.system("easyeffects --reset")
+            STATE_FILE.write_text("off")
+            return True
+    except Exception as e:
+        return False
+
+def json_response():
+    """Return JSON response"""
+    is_on = get_state()
+    return json.dumps({
+        "is_on": is_on,
+        "state": "on" if is_on else "off"
+    })
+
+def main():
+    # Get the payload and method from webhook
+    payload = sys.argv[1] if len(sys.argv) > 1 else ""
+    method = os.environ.get("REQUEST_METHOD", "GET")
+    
+    # Handle different cases
+    if method == "POST" and payload:
+        try:
+            data = json.loads(payload)
+            action = data.get("action", "")
+            if action == "ON":
+                set_state(True)
+            elif action == "OFF":
+                set_state(False)
+        except json.JSONDecodeError:
+            pass  # Just return status if JSON is invalid
+    
+    # For GET or any other case, just return current state
+    print(json_response())
+
+if __name__ == "__main__":
+    main()

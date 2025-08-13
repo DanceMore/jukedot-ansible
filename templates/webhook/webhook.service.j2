@@ -1,0 +1,14 @@
+[Unit]
+Description=Webhook service for Home Assistant integration
+After=network.target
+
+[Service]
+Type=simple
+User={{ webhook_user }}
+Group={{ webhook_user }}
+ExecStart=/usr/bin/webhook -hooks /etc/webhook/hooks.json -verbose -port 9000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

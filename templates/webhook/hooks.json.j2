@@ -1,0 +1,22 @@
+[
+  {
+    "id": "bass-control",
+    "execute-command": "/usr/local/bin/bass-control",
+    "command-working-directory": "/tmp",
+    "http-methods": ["GET", "POST"],
+    "incoming-payload-content-type": "application/json",
+    "pass-arguments-to-command": [
+      {
+        "source": "entire-payload"
+      }
+    ],
+    "pass-environment-to-command": [
+      {
+        "envname": "REQUEST_METHOD",
+        "source": "request",
+        "name": "method"
+      }
+    ],
+    "include-command-output-in-response": true
+  }
+]
