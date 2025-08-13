@@ -1,6 +1,6 @@
 [Unit]
 Description=EasyEffects inside Xvfb (Headless)
-After=sound.target
+After=sound.target dbus.service systemd-journald.service
 Wants=sound.target
 
 [Service]

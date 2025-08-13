@@ -12,7 +12,7 @@ case "$1" in
         # Kill any existing Xvfb processes
         pkill Xvfb || true
         sleep 1
-        
+
         # Start Xvfb
         Xvfb "${DISPLAY}" -screen 0 "${SCREEN}" &
         sleep 3
@@ -22,9 +22,13 @@ case "$1" in
         
         # Start EasyEffects (systemd unit should run as $USER)
         easyeffects --gapplication-service
+        sleep 7
 
-        # alsop run mpd here for xsession winning and not systemd
-        mpd &
+        # also run mpd here for xsession winning and not systemd
+        mpd /home/${USER}/mpd.conf &
+        /usr/local/bin/bass-control on
+        sleep 3
+        mpc vol 10 &
         ;;
     
     stop)

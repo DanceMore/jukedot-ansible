@@ -3,17 +3,11 @@
 # Managed by Ansible
 
 # Directory settings
-music_directory        "/var/lib/mpd/music"
+## use defaults as able ;)
 playlist_directory     "/var/lib/mpd/playlists"
-db_file               "/var/lib/mpd/tag_cache"
-log_file              "/var/log/mpd/mpd.log"
-pid_file              "/run/mpd/pid"
-state_file            "/var/lib/mpd/state"
-sticker_file          "/var/lib/mpd/sticker.sql"
 
 # Character encoding
 filesystem_charset     "UTF-8"
-id3v1_encoding        "UTF-8"
 
 # Network settings
 user                  "{{ mpd_user | default('mpd') }}"

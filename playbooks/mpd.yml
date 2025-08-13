@@ -2,6 +2,8 @@
 - name: Install MPD audio receiver
   hosts: all
   become: yes
+  vars:
+    mpd_user: "mpd"
   
   vars:
     mpd_playlists:
@@ -40,14 +42,13 @@
     - name: Copy MPD config
       template:
         src: ../templates/mpd.conf.j2
-        dest: /etc/mpd.conf
-      notify: restart mpd
+        dest: "/home/{{ mpd_user}}/mpd.conf"
 
     - name: Ensure MPD playlists directory exists
       file:
         path: /var/lib/mpd/playlists
         state: directory
-        owner: mpd
+        owner: "{{ mpd_user }}"
         group: audio
         mode: '0755'
 
@@ -59,7 +60,6 @@
         group: audio
         mode: '0644'
       loop: "{{ mpd_playlists }}"
-      notify: update mpd database
 
     - name: Copy ZEDi8 udev rule
       copy:
@@ -81,9 +81,24 @@
           sleep 10
           logger "[+] ZEDi8 reconnection 10sec sleep completed."
 
+    # defer to userland call, not systemd
     - name: Enable MPD service
       systemd:
         name: mpd
         enabled: no
         state: stopped
       when: not ansible_check_mode
+
+    - name: Ensure MPD logs owned by userland
+      file:
+        path: /var/log/mpd
+        owner: "{{ mpd_user }}"
+        group: audio
+        recurse: yes
+
+    - name: Ensure MPD run owned by userland
+      file:
+        path: /run/mpd
+        owner: "{{ mpd_user }}"
+        group: audio
+        recurse: yes
